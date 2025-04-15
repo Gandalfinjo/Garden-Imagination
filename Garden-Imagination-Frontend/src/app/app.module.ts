@@ -25,6 +25,7 @@ import { DecoratorStatisticsComponent } from './decorator-statistics/decorator-s
 import { AgChartsModule } from 'ag-charts-angular';
 import { HistogramComponent } from './histogram/histogram.component';
 import { MapComponent } from './map/map.component';
+import { GuestNavbarComponent } from './guest-navbar/guest-navbar.component';
 
 @NgModule({
   declarations: [
@@ -47,6 +48,7 @@ import { MapComponent } from './map/map.component';
     DecoratorStatisticsComponent,
     HistogramComponent,
     MapComponent,
+    GuestNavbarComponent,
   ],
   imports: [
     BrowserModule,
