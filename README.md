@@ -1,27 +1,127 @@
-# Garden Imagination Frontend
+# 🌱 Garden Imagination
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.2.
+This is a full-stack application built using the **MEAN stack** (MongoDB, Express.js, Angular, Node.js), organized as a monorepo with separate frontend and backend folders.
 
-## Development server
+---
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## 📁 Project Structure
 
-## Code scaffolding
+```
+Garden-Imagination/
+│
+├── Garden-Imagination-Frontend/     → Angular 16 app
+└── Garden-Imagination-Backend/      → Express.js API with TypeScript
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+---
 
-## Build
+## 🚀 Getting Started
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### 🔧 Prerequisites
 
-## Running unit tests
+- Node.js (v16 or later)
+- MongoDB
+- Angular CLI (`npm install -g @angular/cli`)
+- TypeScript (`npm install -g typescript`)
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+---
 
-## Running end-to-end tests
+## 💽 Frontend
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+**Location**: `Garden-Imagination-Frontend/`\
+**Framework**: Angular 16
 
-## Further help
+### 🔨 Development server
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+Navigate to `http://localhost:4200/`. The app will automatically reload when source files change.
+
+### 🛠 Useful Angular CLI commands
+
+- Generate component: `ng generate component component-name`
+- Generate other elements: `ng generate directive|pipe|service|class|guard|interface|enum|module`
+
+### 🏗️ Build
+
+```bash
+ng build
+```
+
+Build artifacts are stored in the `dist/` directory.
+
+### ✅ Running Tests
+
+- **Unit Tests**: `ng test` (uses [Karma](https://karma-runner.github.io))
+- **End-to-End Tests**: `ng e2e` (requires a configured E2E framework)
+
+---
+
+## 🔙 Backend
+
+**Location**: `Garden-Imagination-Backend/`\
+**Framework**: Express.js with TypeScript
+
+### ▶️ Start Backend Server
+
+```bash
+cd backend
+npm install
+tsc       # Compiles TypeScript to JavaScript
+npm run serve
+```
+
+The server runs on `http://localhost:4000/` (or your configured port).
+
+### 🏗️ Scripts
+
+- `tsc` — Compile TypeScript code
+- `npm run serve` — Start compiled backend server
+
+### 📦 Output
+
+Compiled files are stored in the `dist/` directory.
+
+---
+
+## 📚 Technologies Used
+
+### Frontend
+- Angular 16
+- TypeScript
+- Bootstrap
+- Leaflet (map rendering)
+- Google reCAPTCHA v2/v3 (bot protection)
+- AG Charts Angular
+- CryptoJS (hashing)
+
+### Backend
+- Node.js
+- Express.js
+- TypeScript
+- MongoDB (Mongoose)
+- Multer (file upload handling)
+
+### Dev Tools
+- Angular CLI
+- TypeScript Compiler
+- Nodemon (optional)
+
+
+---
+
+## 📝 Notes
+
+- This monorepo simplifies deployment, version control, and CI/CD.
+- Environment-specific variables should be stored in `.env` files in both frontend and backend (ignored via `.gitignore`).
+
+---
+
+## 📬 Contact
+
+For questions, ideas, or contributions — feel free to reach out!
+
