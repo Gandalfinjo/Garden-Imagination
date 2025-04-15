@@ -1,0 +1,84 @@
+# === Backend ===
+
+# Node.js
+Garden-Imagination-Backend/node_modules/
+Garden-Imagination-Backend/package-lock.json
+Garden-Imagination-Backend/npm-debug.log
+Garden-Imagination-Backend/yarn-error.log
+
+# TypeScript
+Garden-Imagination-Backend/*.tsbuildinfo
+Garden-Imagination-Backend/*.d.ts
+Garden-Imagination-Backend/*.js
+Garden-Imagination-Backend/*.jsx
+Garden-Imagination-Backend/*.js.map
+Garden-Imagination-Backend/*.jsx.map
+
+# Build output
+Garden-Imagination-Backend/dist/
+Garden-Imagination-Backend/build/
+
+# Environment files
+Garden-Imagination-Backend/.env
+Garden-Imagination-Backend/.env.*
+
+# Logs
+Garden-Imagination-Backend/logs/
+Garden-Imagination-Backend/*.log
+Garden-Imagination-Backend/npm-debug.log*
+
+# OS-specific files
+Garden-Imagination-Backend/.DS_Store
+Garden-Imagination-Backend/Thumbs.db
+
+# IDE/editor-specific files
+Garden-Imagination-Backend/.vscode/
+Garden-Imagination-Backend/.idea/
+Garden-Imagination-Backend/*.suo
+Garden-Imagination-Backend/*.ntvs_analysis.dat
+Garden-Imagination-Backend/*.njsproj
+Garden-Imagination-Backend/*.sln
+
+# Optional: Coveralls
+Garden-Imagination-Backend/coverage/
+
+# Optional: PM2 logs
+Garden-Imagination-Backend/pids/
+Garden-Imagination-Backend/*.pid
+Garden-Imagination-Backend/*.seed
+
+---
+
+# === Frontend ===
+
+# Compiled output
+Garden-Imagination-Frontend/dist
+Garden-Imagination-Frontend/tmp
+Garden-Imagination-Frontend/out-tsc
+Garden-Imagination-Frontend/bazel-out
+
+# Node
+Garden-Imagination-Frontend/node_modules
+Garden-Imagination-Frontend/npm-debug.log
+Garden-Imagination-Frontend/yarn-error.log
+
+# Visual Studio Code
+Garden-Imagination-Frontend/.vscode/*
+!Garden-Imagination-Frontend/.vscode/settings.json
+!Garden-Imagination-Frontend/.vscode/tasks.json
+!Garden-Imagination-Frontend/.vscode/launch.json
+!Garden-Imagination-Frontend/.vscode/extensions.json
+Garden-Imagination-Frontend/.history/*
+
+# Miscellaneous
+Garden-Imagination-Frontend/.angular/cache
+Garden-Imagination-Frontend/.sass-cache/
+Garden-Imagination-Frontend/connect.lock
+Garden-Imagination-Frontend/coverage
+Garden-Imagination-Frontend/libpeerconnection.log
+Garden-Imagination-Frontend/testem.log
+Garden-Imagination-Frontend/typings
+
+# System files
+Garden-Imagination-Frontend/.DS_Store
+Garden-Imagination-Frontend/Thumbs.db
