@@ -27,6 +27,7 @@ import { HistogramComponent } from './histogram/histogram.component';
 import { MapComponent } from './map/map.component';
 import { GuestNavbarComponent } from './guest-navbar/guest-navbar.component';
 import { OwnerNavbarComponent } from './owner-navbar/owner-navbar.component';
+import { DecoratorNavbarComponent } from './decorator-navbar/decorator-navbar.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +52,7 @@ import { OwnerNavbarComponent } from './owner-navbar/owner-navbar.component';
     MapComponent,
     GuestNavbarComponent,
     OwnerNavbarComponent,
+    DecoratorNavbarComponent,
   ],
   imports: [
     BrowserModule,
