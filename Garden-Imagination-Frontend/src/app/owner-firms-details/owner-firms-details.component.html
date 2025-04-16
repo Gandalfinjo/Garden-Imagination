@@ -1,18 +1,5 @@
 <div class="container-fluid p-0">
-    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
-        <div class="container-fluid">
-            <a href="/" class="navbar-brand">
-                <b>Garden Imagination</b>
-            </a>
-            <ul class="navbar-nav">
-                <li class="nav-item"><a href="/owner" class="nav-link">Profile</a></li>
-                <li class="nav-item"><a href="/owner-firms" class="nav-link active">Firms</a></li>
-                <li class="nav-item"><a href="/owner-appointments" class="nav-link">Appointments</a></li>
-                <li class="nav-item"><a href="/owner-maintenance" class="nav-link">Maintenance</a></li>
-                <li class="nav-item"><button type="button" class="btn btn-outline-light" (click)="logout()">Logout</button></li>
-            </ul>
-        </div>
-    </nav>
+    <app-owner-navbar (logoutClicked)="logout()"></app-owner-navbar>
   
     <main class="container mt-4">
         <h1 class="text-center">{{ firm.name }}</h1>

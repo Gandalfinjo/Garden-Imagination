@@ -26,6 +26,7 @@ import { AgChartsModule } from 'ag-charts-angular';
 import { HistogramComponent } from './histogram/histogram.component';
 import { MapComponent } from './map/map.component';
 import { GuestNavbarComponent } from './guest-navbar/guest-navbar.component';
+import { OwnerNavbarComponent } from './owner-navbar/owner-navbar.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { GuestNavbarComponent } from './guest-navbar/guest-navbar.component';
     HistogramComponent,
     MapComponent,
     GuestNavbarComponent,
+    OwnerNavbarComponent,
   ],
   imports: [
     BrowserModule,
