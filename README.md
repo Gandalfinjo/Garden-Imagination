@@ -34,7 +34,7 @@ Garden-Imagination/
 ### 🔨 Development server
 
 ```bash
-cd frontend
+cd Garden-Imagination-Frontend
 npm install
 ng serve
 ```
@@ -69,7 +69,7 @@ Build artifacts are stored in the `dist/` directory.
 ### ▶️ Start Backend Server
 
 ```bash
-cd backend
+cd Garden-Imagination-Backend
 npm install
 tsc       # Compiles TypeScript to JavaScript
 npm run serve
@@ -118,6 +118,7 @@ Compiled files are stored in the `dist/` directory.
 
 - This monorepo simplifies deployment, version control, and CI/CD.
 - Environment-specific variables should be stored in `.env` files in both frontend and backend (ignored via `.gitignore`).
+- Empty Express.js and Angular projects should be created first and then copying these files inside.
 
 ---
 
