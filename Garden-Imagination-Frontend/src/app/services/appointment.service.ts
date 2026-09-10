@@ -69,7 +69,7 @@ export class AppointmentService {
   }
 
   getLastThreeFinishedAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/recent-finished`);
+    return this.http.get<Appointment[]>(`${this.backend}/stats/recent-finished`);
   }
 
   getOwnerFinishedAppointments(owner: string): Observable<Appointment[]> {
@@ -125,6 +125,6 @@ export class AppointmentService {
   }
 
   getNotAttachedPhotoAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/pending-photo`);
+    return this.http.get<Appointment[]>(`${this.backend}/unattached-photos`);
   }
 }
