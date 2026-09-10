@@ -132,7 +132,7 @@ export class UserController {
     getOwnersCount = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const count = await User.countDocuments({ type: "owner" });
-            res.status(200).json({ count });
+            res.status(200).json(count);
         } catch (error) {
             next(error);
         }
@@ -150,7 +150,7 @@ export class UserController {
     getDecoratorsCount = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const count = await User.countDocuments({ type: "decorator" });
-            res.status(200).json({ count });
+            res.status(200).json(count);
         } catch (error) {
             next(error);
         }
