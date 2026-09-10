@@ -1,9 +1,10 @@
-import express from "express";
+import { Router } from "express";
 import { AdminController } from "../controllers/admin.controller";
 
-const adminRouter = express.Router();
+const adminRouter = Router();
 const controller = new AdminController();
 
+// --- Admin Authentication ---
 adminRouter.post("/login", controller.login);
 
 export default adminRouter;

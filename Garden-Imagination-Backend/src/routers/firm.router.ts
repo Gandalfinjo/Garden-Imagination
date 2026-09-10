@@ -1,22 +1,15 @@
-import express from "express";
+import { Router } from "express";
 import { FirmController } from "../controllers/firm.controller";
 
-const firmRouter = express.Router();
+const firmRouter = Router();
+const controller = new FirmController();
 
-firmRouter.route("/addFirm").post(
-    (req, res) => new FirmController().addFirm(req, res)
-);
+// --- Firm Management ---
+firmRouter.post("/", controller.addFirm);
+firmRouter.get("/", controller.getAllFirms);
+firmRouter.get("/:id", controller.getById);
 
-firmRouter.route("/getAllFirms").get(
-    (req, res) => new FirmController().getAllFirms(req, res)
-);
-
-firmRouter.route("/getById/:id").get(
-    (req, res) => new FirmController().getById(req, res)
-);
-
-firmRouter.route("/getDecoratorFirm/:username").get(
-    (req, res) => new FirmController().getDecoratorFirm(req, res)
-);
+// --- Decorator Queries ---
+firmRouter.get("/decorator/:username", controller.getDecoratorFirm);
 
 export default firmRouter;

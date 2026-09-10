@@ -1,10 +1,12 @@
-import express from "express";
+import { Request, Response, NextFunction } from "express";
 import Firm from "../models/firm";
 
 export class FirmController {
-    addFirm = (req: express.Request, res: express.Response) => {
-        Firm.findOne().sort({ id: -1 }).then(maxIdFirm => {
-            const newId = maxIdFirm ? maxIdFirm.id + 1 : 1; 
+    // --- Firm Management ---
+    addFirm = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const maxIdFirm = await Firm.findOne().sort({ id: -1 });
+            const newId = maxIdFirm ? maxIdFirm.id + 1 : 1;
 
             const newFirm = new Firm({
                 id: newId,
@@ -16,38 +18,49 @@ export class FirmController {
                 workingHoursStart: req.body.workingHoursStart,
                 workingHoursEnd: req.body.workingHoursEnd,
                 holidayStart: req.body.holidayStart,
-                holidayEnd: req.body.holidayEnd
+                holidayEnd: req.body.holidayEnd,
             });
 
-            newFirm.save().then(savedFirm => {
-                res.status(201).json(savedFirm);
-            })
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            const savedFirm = await newFirm.save();
+            return res.status(201).json(savedFirm);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getAllFirms = (req: express.Request, res: express.Response) => {
-        Firm.find({}).then(firms => {
-            res.status(201).json(firms);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    getAllFirms = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const firms = await Firm.find({});
+            return res.status(200).json(firms);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getById = (req: express.Request, res: express.Response) => {
-        Firm.findOne({ id: req.params.id }).then(firm => {
-            res.status(201).json(firm);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    getById = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const firm = await Firm.findOne({ id: req.params.id });
 
-    getDecoratorFirm = (req: express.Request, res: express.Response) => {
-        Firm.findOne({ decorators: { $elemMatch: { username: req.params.username } } }).then(firm => {
-            res.status(201).json(firm);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            if (!firm) {
+                return res.status(404).json({ message: "Firm not found." });
+            }
+
+            return res.status(200).json(firm);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- Decorator Queries ---
+    getDecoratorFirm = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const firm = await Firm.findOne({
+                decorators: { $elemMatch: { username: req.params.username } },
+            });
+
+            return res.status(200).json(firm);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

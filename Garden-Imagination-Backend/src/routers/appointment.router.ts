@@ -1,8 +1,8 @@
-import express from "express";
+import { Router } from "express";
 import { AppointmentController } from "../controllers/appointment.controller";
 import { upload } from "../config/multer.config";
 
-const appointmentRouter = express.Router();
+const appointmentRouter = Router();
 const controller = new AppointmentController();
 
 // --- General Appointments Lifecycle ---
