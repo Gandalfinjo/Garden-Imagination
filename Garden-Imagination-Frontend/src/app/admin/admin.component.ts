@@ -238,8 +238,8 @@ export class AdminComponent implements OnInit {
 
   changeUsername(id: number): void {
     this.userService.changeUsername(id, this.newUsername).subscribe(response => {
-      if (response.message) {
-        this.errorMessage = response.message;
+      if (!response) {
+        this.errorMessage = "Error changing username";
         setTimeout(() => this.ngOnInit(), 2000);
       }
       else {
@@ -281,8 +281,8 @@ export class AdminComponent implements OnInit {
 
   changeEmail(id: number): void {
     this.userService.changeEmail(id, this.newEmail).subscribe(response => {
-      if (response.message) {
-        this.errorMessage = response.message;
+      if (!response) {
+        this.errorMessage = "Error changing email";
         setTimeout(() => this.ngOnInit(), 2000);
       }
       else {
@@ -313,25 +313,24 @@ export class AdminComponent implements OnInit {
   }
 
   acceptRegistration(registration: Registration): void {
-    const user = {
-      id: registration.id,
-      username: registration.username,
-      password: registration.password,
-      firstname: registration.firstname,
-      lastname: registration.lastname,
-      type: registration.type,
-      gender: registration.gender,
-      address: registration.address,
-      contact: registration.contact,
-      email: registration.email,
-      profilePicture: this.pendingProfilePictures[this.pendingRegistrations.indexOf(registration)],
-      creditCard: registration.creditCard,
-      status: "active"
-    };
+    const formData = new FormData();
+    formData.append("id", registration.id.toString());
+    formData.append("username", registration.username);
+    formData.append("password", registration.password);
+    formData.append("firstname", registration.firstname);
+    formData.append("lastname", registration.lastname);
+    formData.append("type", registration.type);
+    formData.append("gender", registration.gender);
+    formData.append("address", registration.address);
+    formData.append("contact", registration.contact);
+    formData.append("profilePicture", this.pendingProfilePictures[this.pendingRegistrations.indexOf(registration)]);
+    formData.append("email", registration.email);
+    formData.append("creditCard", registration.creditCard);
+    formData.append("status", "active");
 
-    this.userService.register(user).subscribe(response => {
-      if (response.message) {
-        this.errorMessage = response.message;
+    this.userService.register(formData).subscribe(response => {
+      if (!response) {
+        this.errorMessage = "Error accepting registration";
       }
       else {
         this.pendingRegistrations = this.pendingRegistrations.filter(reg => reg !== registration);
@@ -343,25 +342,24 @@ export class AdminComponent implements OnInit {
   }
 
   rejectRegistration(registration: Registration): void {
-    const user = {
-      id: registration.id,
-      username: registration.username,
-      password: registration.password,
-      firstname: registration.firstname,
-      lastname: registration.lastname,
-      type: registration.type,
-      gender: registration.gender,
-      address: registration.address,
-      contact: registration.contact,
-      email: registration.email,
-      profilePicture: this.pendingProfilePictures[this.pendingRegistrations.indexOf(registration)],
-      creditCard: registration.creditCard,
-      status: "deactivated"
-    };
+    const formData = new FormData();
+    formData.append("id", registration.id.toString());
+    formData.append("username", registration.username);
+    formData.append("password", registration.password);
+    formData.append("firstname", registration.firstname);
+    formData.append("lastname", registration.lastname);
+    formData.append("type", registration.type);
+    formData.append("gender", registration.gender);
+    formData.append("address", registration.address);
+    formData.append("contact", registration.contact);
+    formData.append("profilePicture", this.pendingProfilePictures[this.pendingRegistrations.indexOf(registration)]);
+    formData.append("email", registration.email);
+    formData.append("creditCard", registration.creditCard);
+    formData.append("status", "deactivated");
 
-    this.userService.register(user).subscribe(response => {
-      if (response.message) {
-        this.errorMessage = response.message;
+    this.userService.register(formData).subscribe(response => {
+      if (!response) {
+        this.errorMessage = "Error rejecting registration";
       }
       else {
         this.pendingRegistrations = this.pendingRegistrations.filter(reg => reg !== registration);
@@ -439,13 +437,28 @@ export class AdminComponent implements OnInit {
         status: "active"
       };
 
+      const formData = new FormData();
+      formData.append("id", "0");
+      formData.append("username", this.username);
+      formData.append("password", CryptoJS.SHA256(this.password).toString());
+      formData.append("firstname", this.firstname);
+      formData.append("lastname", this.lastname);
+      formData.append("type", "decorator");
+      formData.append("gender", this.gender);
+      formData.append("address", this.address);
+      formData.append("contact", this.contact);
+      formData.append("email", this.email);
+      formData.append("profilePicture", this.profilePicture);
+      formData.append("creditCard", this.creditCard);
+      formData.append("status", "active");
+
       this.userService.existsByUsernameOrEmail(user).subscribe(
         response => {
           if (response.message === "Username is already used" || response.message === "Email is already used") {
             this.errorMessageDecorator = response.message;
           }
           else {
-            this.userService.register(user).subscribe(
+            this.userService.register(formData).subscribe(
               () => {
                 this.successMessage = "Successfully added a decorator";
                 setTimeout(() => this.ngOnInit(), 2000);
@@ -476,13 +489,28 @@ export class AdminComponent implements OnInit {
           status: "active"
         };
 
+        const formData = new FormData();
+        formData.append("id", "0");
+        formData.append("username", this.username);
+        formData.append("password", CryptoJS.SHA256(this.password).toString());
+        formData.append("firstname", this.firstname);
+        formData.append("lastname", this.lastname);
+        formData.append("type", "decorator");
+        formData.append("gender", this.gender);
+        formData.append("address", this.address);
+        formData.append("contact", this.contact);
+        formData.append("email", this.email);
+        formData.append("profilePicture", this.profilePicture);
+        formData.append("creditCard", this.creditCard);
+        formData.append("status", "active");
+
         this.userService.existsByUsernameOrEmail(user).subscribe(
           response => {
             if (response.message === "Username is already used" || response.message === "Email is already used") {
               this.errorMessageDecorator = response.message;
             }
             else {
-              this.userService.register(user).subscribe(
+              this.userService.register(formData).subscribe(
                 () => {
                   this.successMessage = "Successfully added a decorator";
                   setTimeout(() => this.ngOnInit(), 2000);

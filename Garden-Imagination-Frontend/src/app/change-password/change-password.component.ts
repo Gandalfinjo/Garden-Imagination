@@ -26,7 +26,7 @@ export class ChangePasswordComponent {
     else {
       this.userService.existsByUsername(this.username).subscribe(
         response => {
-          if (response.message) this.errorMessage = response.message;
+          if (!response.exists) this.errorMessage = "The user doesn't exist";
           else if (response.user) {
             if (response.user.password != CryptoJS.SHA256(this.currentPassword).toString()) this.errorMessage = "Wrong password";
             else if (this.currentPassword == this.newPassword) this.errorMessage = "You used the old password";

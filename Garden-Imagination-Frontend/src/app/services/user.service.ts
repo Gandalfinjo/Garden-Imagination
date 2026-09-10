@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { User } from '../models/user';
 import { Observable } from 'rxjs';
@@ -12,42 +12,33 @@ export class UserService {
 
   constructor(private http: HttpClient) { }
 
-  register(user: User): Observable<Response> {
-    const formData = new FormData();
-
-    formData.append("id", user.id.toString());
-    formData.append("username", user.username);
-    formData.append("password", user.password);
-    formData.append("firstname", user.firstname);
-    formData.append("lastname", user.lastname);
-    formData.append("type", user.type);
-    formData.append("gender", user.gender);
-    formData.append("address", user.address);
-    formData.append("contact", user.contact);
-    formData.append("email", user.email);
-    formData.append("profilePicture", user.profilePicture);
-    formData.append("creditCard", user.creditCard);
-    formData.append("status", user.status);
-
-    return this.http.post<Response>(`${this.backend}/register`, formData);
+  // --- Authentication & Account Lifecycle ---
+  register(userData: FormData): Observable<User> {
+    return this.http.post<User>(`${this.backend}/register`, userData);
   }
 
   login(username: string, password: string, type: string): Observable<User> {
     return this.http.post<User>(`${this.backend}/login`, { username, password, type });
   }
 
-  existsByUsername(username: string): Observable<Response> {
-    return this.http.get<Response>(`${this.backend}/exists/username/${username}`);
+  // --- Validation & Search Queries ---
+  existsByUsername(username: string): Observable<{ exists: boolean; user: User }> {
+    const params = new HttpParams().set('username', username);
+    return this.http.get<{ exists: boolean; user: User }>(`${this.backend}/check-username`, { params });
   }
 
-  existsByUsernameOrEmail(user: User): Observable<Response> {
-    return this.http.post<Response>(`${this.backend}/exists`, { username: user.username, email: user.email });
+  existsByUsernameOrEmail(user: User): Observable<{ message: string }> {
+    const params = new HttpParams()
+      .set('username', user.username)
+      .set('email', user.email);
+    return this.http.get<{ message: string }>(`${this.backend}/check-credentials`, { params });
   }
 
   getByUsername(username: string): Observable<User> {
-    return this.http.get<User>(`${this.backend}/username/${username}`);
+    return this.http.get<User>(`${this.backend}/by-username/${username}`);
   }
 
+  // --- Stats & Collections ---
   getAllOwners(): Observable<User[]> {
     return this.http.get<User[]>(`${this.backend}/owners`);
   }
@@ -64,54 +55,56 @@ export class UserService {
     return this.http.get<number>(`${this.backend}/decorators/count`);
   }
 
+  // --- Account Status Controls ---
   activateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/activate`, {});
+    return this.http.patch<User>(`${this.backend}/${id}/activate`, {});
   }
 
   deactivateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/deactivate`, {});
+    return this.http.patch<User>(`${this.backend}/${id}/deactivate`, {});
   }
 
-  changeUsername(id: number, username: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/${id}/username`, { username });
+  // --- User Profile Updates ---
+  changePassword(username: string, password: string): Observable<{ message: string; user: User }> {
+    return this.http.patch<{ message: string; user: User }>(`${this.backend}/change-password`, { username, password });
   }
 
-  changePassword(username: string, password: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/password`, { username, password });
+  changeUsername(id: number, username: string): Observable<User> {
+    return this.http.patch<User>(`${this.backend}/${id}/username`, { username });
   }
 
   changeFirstname(id: number, firstname: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/firstname`, { firstname });
+    return this.http.patch<User>(`${this.backend}/${id}/firstname`, { firstname });
   }
 
   changeLastname(id: number, lastname: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/lastname`, { lastname });
+    return this.http.patch<User>(`${this.backend}/${id}/lastname`, { lastname });
   }
 
   changeGender(id: number, gender: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/gender`, { gender });
+    return this.http.patch<User>(`${this.backend}/${id}/gender`, { gender });
   }
 
   changeAddress(id: number, address: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/address`, { address });
+    return this.http.patch<User>(`${this.backend}/${id}/address`, { address });
   }
 
   changeContact(id: number, contact: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/contact`, { contact });
+    return this.http.patch<User>(`${this.backend}/${id}/contact`, { contact });
   }
 
-  changeEmail(id: number, email: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/${id}/email`, { email });
+  changeEmail(id: number, email: string): Observable<User> {
+    return this.http.patch<User>(`${this.backend}/${id}/email`, { email });
+  }
+
+  changeCreditCard(id: number, creditCard: string): Observable<User> {
+    return this.http.patch<User>(`${this.backend}/${id}/credit-card`, { creditCard });
   }
 
   changeProfilePicture(id: number, profilePicture: File): Observable<User> {
     const formData = new FormData();
     formData.append("profilePicture", profilePicture);
 
-    return this.http.put<User>(`${this.backend}/${id}/profile-picture`, formData);
-  }
-
-  changeCreditCard(id: number, creditCard: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/${id}/credit-card`, { creditCard });
+    return this.http.patch<User>(`${this.backend}/${id}/profile-picture`, formData);
   }
 }

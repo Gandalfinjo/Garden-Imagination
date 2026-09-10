@@ -95,8 +95,8 @@ export class OwnerComponent implements OnInit {
     }
     else {
       this.userService.changeEmail(this.owner.id, this.newEmail).subscribe(response => {
-        if (response.message) {
-          this.errorMessage = response.message;
+        if (response) {
+          this.errorMessage = "Email changed successfully";
           setTimeout(() => this.ngOnInit(), 2000);
         }
         else {

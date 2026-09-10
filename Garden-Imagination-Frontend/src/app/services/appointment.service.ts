@@ -100,8 +100,8 @@ export class AppointmentService {
     return this.http.get<number>(`${this.backend}/decorator/${decorator}/monthly/${month}`);
   }
 
-  getDailyAppointments(id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.backend}/daily/${id}`);
+  getDailyAppointments(firmId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.backend}/firm/${firmId}/daily`);
   }
 
   requestMaintenance(id: number, status: string, maintenanceStart: string): Observable<Appointment> {
