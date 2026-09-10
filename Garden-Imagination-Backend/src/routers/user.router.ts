@@ -1,90 +1,43 @@
-import express from "express";
+import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
+import { upload } from "../config/multer.config";
 
-const userRouter = express.Router();
+const userRouter = Router();
+const controller = new UserController();
 
-userRouter.route("/register").post(
-    (req, res) => new UserController().register(req, res)
-);
+// --- Authentication & Account Lifecycle ---
+userRouter.post("/register", upload.single("profilePicture"), controller.register);
+userRouter.post("/login", controller.login);
 
-userRouter.route("/login").post(
-    (req, res) => new UserController().login(req, res)
-);
+// --- Validation & Search Queries ---
+userRouter.get("/check-username", controller.existsByUsername);
+userRouter.get("/check-credentials", controller.existsByUsernameOrEmail);
+userRouter.get("/by-username/:username", controller.getByUsername);
 
-userRouter.route("/existsByUsername").post(
-    (req, res) => new UserController().existsByUsername(req, res)
-);
+// --- Stats & Collections ---
+userRouter.get("/owners", controller.getAllOwners);
+userRouter.get("/owners/count", controller.getOwnersCount);
+userRouter.get("/decorators", controller.getAllDecorators);
+userRouter.get("/decorators/count", controller.getDecoratorsCount);
 
-userRouter.route("/existsByUsernameOrEmail").post(
-    (req, res) => new UserController().existsByUsernameOrEmail(req, res)
-);
+// --- Account Status Controls ---
+userRouter.patch("/:id/activate", controller.activateUser);
+userRouter.patch("/:id/deactivate", controller.deactivateUser);
 
-userRouter.route("/getByUsername").post(
-    (req, res) => new UserController().getByUsername(req, res)
-);
-
-userRouter.route("/getAllOwners").get(
-    (req, res) => new UserController().getAllOwners(req, res)
-);
-
-userRouter.route("/getOwnersCount").get(
-    (req, res) => new UserController().getOwnersCount(req, res)
-);
-
-userRouter.route("/getDecoratorsCount").get(
-    (req, res) => new UserController().getDecoratorsCount(req, res)
-);
-
-userRouter.route("/getAllDecorators").get(
-    (req, res) => new UserController().getAllDecorators(req, res)
-);
-
-userRouter.route("/activateUser/:id").put(
-    (req, res) => new UserController().activateUser(req, res)
-);
-
-userRouter.route("/deactivateUser/:id").put(
-    (req, res) => new UserController().deactivateUser(req, res)
-);
-
-userRouter.route("/changeUsername/:id").put(
-    (req, res) => new UserController().changeUsername(req, res)
-);
-
-userRouter.route("/changePassword").put(
-    (req, res) => new UserController().changePassword(req, res)
-);
-
-userRouter.route("/changeFirstname/:id/:firstname").put(
-    (req, res) => new UserController().changeFirstname(req, res)
-);
-
-userRouter.route("/changeLastname/:id/:lastname").put(
-    (req, res) => new UserController().changeLastname(req, res)
-);
-
-userRouter.route("/changeGender/:id/:gender").put(
-    (req, res) => new UserController().changeGender(req, res)
-);
-
-userRouter.route("/changeAddress/:id/:address").put(
-    (req, res) => new UserController().changeAddress(req, res)
-);
-
-userRouter.route("/changeContact/:id/:contact").put(
-    (req, res) => new UserController().changeContact(req, res)
-);
-
-userRouter.route("/changeEmail/:id").put(
-    (req, res) => new UserController().changeEmail(req, res)
-);
-
-userRouter.route("/changeProfilePicture/:id").put(
-    (req, res) => new UserController().changeProfilePicture(req, res)
-);
-
-userRouter.route("/changeCreditCard/:id").put(
-    (req, res) => new UserController().changeCreditCard(req, res)
+// --- User Profile Updates ---
+userRouter.patch("/change-password", controller.changePassword);
+userRouter.patch("/:id/username", controller.changeUsername);
+userRouter.patch("/:id/firstname", controller.changeFirstname);
+userRouter.patch("/:id/lastname", controller.changeLastname);
+userRouter.patch("/:id/gender", controller.changeGender);
+userRouter.patch("/:id/address", controller.changeAddress);
+userRouter.patch("/:id/contact", controller.changeContact);
+userRouter.patch("/:id/email", controller.changeEmail);
+userRouter.patch("/:id/credit-card", controller.changeCreditCard);
+userRouter.patch(
+    "/:id/profile-picture",
+    upload.single("profilePicture"),
+    controller.changeProfilePicture
 );
 
 export default userRouter;

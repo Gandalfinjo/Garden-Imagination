@@ -1,228 +1,380 @@
-import express from "express";
+import { Request, Response, NextFunction } from "express";
 import User from "../models/user";
 
 export class UserController {
-    register = (req: express.Request, res: express.Response) => {
-        User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }]}).then(user => {
-            if (user) {
-                if (user.username == req.body.username) {
-                    return res.status(200).json({ message: "Username is already used" });
-                }
-                if (user.email == req.body.email) {
-                    return res.status(200).json({ message: "Email is already used"});
-                }
-            }
+    // --- Authentication & Account Lifecycle ---
+    register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username, email } = req.body;
 
-            User.findOne().sort({ id: -1 }).then(maxIdUser => {
-                const newId = maxIdUser ? maxIdUser.id + 1 : 1;
-                const file = req.file;
-                if (!file) return res.status(400).json({ message: "No file uploaded" });
-
-                const newUser = new User({
-                    id: newId,
-                    username: req.body.username,
-                    password: req.body.password,
-                    firstname: req.body.firstname,
-                    lastname: req.body.lastname,
-                    type: req.body.type,
-                    gender: req.body.gender,
-                    address: req.body.address,
-                    contact: req.body.contact,
-                    email: req.body.email,
-                    profilePicture: file.filename,
-                    creditCard: req.body.creditCard,
-                    status: req.body.status
-                });
-                
-                newUser.save().then(savedUser => {
-                    res.status(201).json(savedUser);
-                });
-            });   
-        }).catch(error => {
-            res.status(500).json({ message: error.message});
-        });
-    }
-
-    login = (req: express.Request, res: express.Response) => {
-        User.findOne({ username: req.body.username, password: req.body.password, type: req.body.type, status: "active" }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    existsByUsername = (req: express.Request, res: express.Response) => {
-        User.findOne({ username: req.body.username }).then(user => {
-            if (user) return res.status(200).json({ user: user });
-            else return res.status(200).json({ message: "Username doesn't exist" });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    existsByUsernameOrEmail = (req: express.Request, res: express.Response) => {
-        User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }]}).then(user => {
-            if (user) {
-                if (user.username == req.body.username) {
-                    return res.status(200).json({ message: "Username is already used" });
-                }
-                if (user.email == req.body.email) {
-                    return res.status(200).json({ message: "Email is already used"});
-                }
-            }
-            else {
-                return res.status(200).json({ message: "Unique username and email" });
-            }
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getByUsername = (req: express.Request, res: express.Response) => {
-        User.findOne({ username: req.body.username }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getAllOwners = (req: express.Request, res: express.Response) => {
-        User.find({ type: "owner" }).then(users => {
-            res.status(200).json(users);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getOwnersCount = (req: express.Request, res: express.Response) => {
-        User.find({ type: "owner" }).then(users => {
-            res.status(200).json(users.length);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getAllDecorators = (req: express.Request, res: express.Response) => {
-        User.find({ type: "decorator" }).then(users => {
-            res.status(200).json(users);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getDecoratorsCount = (req: express.Request, res: express.Response) => {
-        User.find({ type: "decorator" }).then(users => {
-            res.status(200).json(users.length);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    activateUser = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { status: "active" }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    deactivateUser = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { status: "deactivated" }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    changeUsername = (req: express.Request, res: express.Response) => {
-        User.findOne({ username: req.body.username }).then(user => {
-            if (user) {
-                return res.status(200).json({ message: "Username is already used" });
-            }
-            User.findOneAndUpdate({ id: req.params.id }, { username: req.body.username }).then(user => {
-                res.status(200).json(user);
+            const existingUser = await User.findOne({
+                $or: [{ username }, { email }],
             });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
 
-    changePassword = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ username: req.body.username }, { password: req.body.password }).then(user => {
-            if (!user) res.status(200).json({ message: "Username doesn't exist" });
-            else res.status(201).json({ user: user });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    changeFirstname = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { firstname: req.params.firstname }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    changeLastname = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { lastname: req.params.lastname }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-    
-    changeGender = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { gender: req.params.gender }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-    
-    changeAddress = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { address: req.params.address }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    changeContact = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { contact: req.params.contact }).then(user => {
-            res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    changeEmail = (req: express.Request, res: express.Response) => {
-        User.findOne({ email: req.body.email }).then(user => {
-            if (user) {
-                return res.status(200).json({ message: "Email is already used" });
+            if (existingUser) {
+                if (existingUser.username === username) {
+                    res.status(409).json({ message: "Username is already in use" });
+                    return;
+                }
+                if (existingUser.email === email) {
+                    res.status(409).json({ message: "Email is already in use" });
+                    return;
+                }
             }
-            User.findOneAndUpdate({ id: req.params.id }, { email: req.body.email }).then(user => {
-                res.status(200).json(user);
+
+            if (!req.file) {
+                res.status(400).json({ message: "Profile picture file is required" });
+                return;
+            }
+
+            const maxIdUser = await User.findOne().sort({ id: -1 });
+            const newId = maxIdUser ? maxIdUser.id + 1 : 1;
+
+            const newUser = new User({
+                ...req.body,
+                id: newId,
+                profilePicture: req.file.filename,
             });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
 
-    changeProfilePicture = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { profilePicture: req.file?.filename }).then(user => {
+            const savedUser = await newUser.save();
+            res.status(201).json(savedUser);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username, password, type } = req.body;
+            const user = await User.findOne({ username, password, type, status: "active" });
+
+            if (!user) {
+                res.status(401).json({ message: "Invalid credentials or account inactive" });
+                return;
+            }
+
             res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    changeCreditCard = (req: express.Request, res: express.Response) => {
-        User.findOneAndUpdate({ id: req.params.id }, { creditCard: req.body.creditCard }).then(user => {
+    // --- Validation & Search Queries ---
+    existsByUsername = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const username = (req.query.username as string) || req.body.username;
+            const user = await User.findOne({ username });
+
+            if (!user) {
+                res.status(404).json({ message: "Username does not exist" });
+                return;
+            }
+
+            res.status(200).json({ exists: true, user });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    existsByUsernameOrEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username, email } = req.query;
+            const user = await User.findOne({
+                $or: [
+                    { username: username as string },
+                    { email: email as string },
+                ],
+            });
+
+            if (user) {
+                if (user.username === username) {
+                    res.status(409).json({ message: "Username is already used" });
+                    return;
+                }
+                if (user.email === email) {
+                    res.status(409).json({ message: "Email is already used" });
+                    return;
+                }
+            }
+
+            res.status(200).json({ message: "Unique username and email" });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getByUsername = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username } = req.params;
+            const user = await User.findOne({ username });
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
             res.status(200).json(user);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+        } catch (error) {
+            next(error);
+        }
+    };
 
+    // --- Stats & Collections ---
+    getAllOwners = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const users = await User.find({ type: "owner" });
+            res.status(200).json(users);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getOwnersCount = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const count = await User.countDocuments({ type: "owner" });
+            res.status(200).json({ count });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAllDecorators = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const users = await User.find({ type: "decorator" });
+            res.status(200).json(users);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getDecoratorsCount = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const count = await User.countDocuments({ type: "decorator" });
+            res.status(200).json({ count });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- Account Status Controls ---
+    activateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { status: "active" },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    deactivateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { status: "deactivated" },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- User Profile Updates ---
+    changeUsername = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username } = req.body;
+            const existing = await User.findOne({ username });
+
+            if (existing) {
+                res.status(409).json({ message: "Username is already used" });
+                return;
+            }
+
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { username },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username, password } = req.body;
+            const user = await User.findOneAndUpdate(
+                { username },
+                { password },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "Username does not exist" });
+                return;
+            }
+
+            res.status(200).json({ message: "Password updated successfully", user });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeFirstname = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { firstname: req.body.firstname },
+                { new: true }
+            );
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeLastname = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { lastname: req.body.lastname },
+                { new: true }
+            );
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeGender = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { gender: req.body.gender },
+                { new: true }
+            );
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeAddress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { address: req.body.address },
+                { new: true }
+            );
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeContact = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { contact: req.body.contact },
+                { new: true }
+            );
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { email } = req.body;
+            const existing = await User.findOne({ email });
+
+            if (existing) {
+                res.status(409).json({ message: "Email is already used" });
+                return;
+            }
+
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { email },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeProfilePicture = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.file) {
+                res.status(400).json({ message: "No file uploaded" });
+                return;
+            }
+
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { profilePicture: req.file.filename },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changeCreditCard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { id: req.params.id },
+                { creditCard: req.body.creditCard },
+                { new: true }
+            );
+
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.status(200).json(user);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

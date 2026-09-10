@@ -19,33 +19,14 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// database
-mongoose.connect(MONGO_URI);
-
-const connection = mongoose.connection;
-connection.once("open", () => {
-    console.log("Successfully connected to the database.");
-});
-
-// multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => { 
-        cb(null, file.originalname);
-    }
-});
-const upload = multer({ storage: storage });
-
 // router
 const apiRouter = express.Router();
 
-apiRouter.use("/users", upload.single("profilePicture"), userRouter);
+apiRouter.use("/users", userRouter);
 apiRouter.use("/admins", adminRouter);
 apiRouter.use("/firms", firmRouter);
 apiRouter.use("/comments", commentRouter);
-apiRouter.use("/appointments", upload.single("photo"), appointmentRouter);
+apiRouter.use("/appointments", appointmentRouter);
 
 app.use("/", apiRouter);
 
