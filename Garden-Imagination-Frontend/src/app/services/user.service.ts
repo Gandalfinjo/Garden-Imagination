@@ -8,10 +8,9 @@ import { Response } from '../models/response';
   providedIn: 'root'
 })
 export class UserService {
+  private readonly backend: string = "http://localhost:4000/users";
 
   constructor(private http: HttpClient) { }
-
-  backend: string = "http://localhost:4000/users";
 
   register(user: User): Observable<Response> {
     const formData = new FormData();
@@ -30,11 +29,7 @@ export class UserService {
     formData.append("creditCard", user.creditCard);
     formData.append("status", user.status);
 
-    return this.http.post<Response>(`${this.backend}/register`, formData, {
-      headers: new HttpHeaders({
-        "enctype": "multipart/form-data"
-      })
-    });
+    return this.http.post<Response>(`${this.backend}/register`, formData);
   }
 
   login(username: string, password: string, type: string): Observable<User> {
@@ -42,83 +37,81 @@ export class UserService {
   }
 
   existsByUsername(username: string): Observable<Response> {
-    return this.http.post<Response>(`${this.backend}/existsByUsername`, { username: username });
+    return this.http.get<Response>(`${this.backend}/exists/username/${username}`);
   }
 
   existsByUsernameOrEmail(user: User): Observable<Response> {
-    return this.http.post<Response>(`${this.backend}/existsByUsernameOrEmail`, user);
+    return this.http.post<Response>(`${this.backend}/exists`, { username: user.username, email: user.email });
   }
 
   getByUsername(username: string): Observable<User> {
-    return this.http.post<User>(`${this.backend}/getByUsername`, { username: username });
+    return this.http.get<User>(`${this.backend}/username/${username}`);
   }
 
   getAllOwners(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.backend}/getAllOwners`);
+    return this.http.get<User[]>(`${this.backend}/owners`);
   }
 
   getOwnersCount(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getOwnersCount`);
+    return this.http.get<number>(`${this.backend}/owners/count`);
   }
 
   getAllDecorators(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.backend}/getAllDecorators`);
+    return this.http.get<User[]>(`${this.backend}/decorators`);
   }
 
   getDecoratorsCount(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getDecoratorsCount`);
+    return this.http.get<number>(`${this.backend}/decorators/count`);
   }
 
   activateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.backend}/activateUser/${id}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/activate`, {});
   }
 
   deactivateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.backend}/deactivateUser/${id}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/deactivate`, {});
   }
 
   changeUsername(id: number, username: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/changeUsername/${id}`, { username: username });
+    return this.http.put<Response>(`${this.backend}/${id}/username`, { username });
   }
 
   changePassword(username: string, password: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/changePassword`, { username: username, password: password });
+    return this.http.put<Response>(`${this.backend}/password`, { username, password });
   }
 
   changeFirstname(id: number, firstname: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeFirstname/${id}/${firstname}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/firstname`, { firstname });
   }
 
   changeLastname(id: number, lastname: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeLastname/${id}/${lastname}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/lastname`, { lastname });
   }
 
   changeGender(id: number, gender: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeGender/${id}/${gender}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/gender`, { gender });
   }
 
   changeAddress(id: number, address: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeAddress/${id}/${address}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/address`, { address });
   }
 
   changeContact(id: number, contact: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeContact/${id}/${contact}`, {});
+    return this.http.put<User>(`${this.backend}/${id}/contact`, { contact });
   }
 
   changeEmail(id: number, email: string): Observable<Response> {
-    return this.http.put<Response>(`${this.backend}/changeEmail/${id}`, { email: email });
+    return this.http.put<Response>(`${this.backend}/${id}/email`, { email });
   }
 
   changeProfilePicture(id: number, profilePicture: File): Observable<User> {
     const formData = new FormData();
-
     formData.append("profilePicture", profilePicture);
 
-    return this.http.put<User>(`${this.backend}/changeProfilePicture/${id}`, formData);
+    return this.http.put<User>(`${this.backend}/${id}/profile-picture`, formData);
   }
 
   changeCreditCard(id: number, creditCard: string): Observable<User> {
-    return this.http.put<User>(`${this.backend}/changeCreditCard/${id}`, { creditCard: creditCard });
+    return this.http.put<User>(`${this.backend}/${id}/credit-card`, { creditCard });
   }
-
 }

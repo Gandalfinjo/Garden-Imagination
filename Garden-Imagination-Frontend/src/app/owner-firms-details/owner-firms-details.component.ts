@@ -45,7 +45,7 @@ export class OwnerFirmsDetailsComponent implements OnInit {
     const storedUsername = localStorage.getItem("logged");
 
     if (id != null) {
-      this.firmService.getById(id).subscribe(
+      this.firmService.getById(Number(id)).subscribe(
         firm => {
           this.firm = firm;
           this.commentService.getFirmComments(this.firm.id).subscribe(

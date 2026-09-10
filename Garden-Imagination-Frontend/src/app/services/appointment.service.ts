@@ -8,123 +8,123 @@ import { Response } from '../models/response';
   providedIn: 'root'
 })
 export class AppointmentService {
+  private readonly backend: string = "http://localhost:4000/appointments";
 
   constructor(private http: HttpClient) { }
 
-  backend: string = "http://localhost:4000/appointments";
-
   makeAppointment(appointment: Appointment): Observable<Appointment> {
-    return this.http.post<Appointment>(`${this.backend}/makeAppointment`, appointment);
+    return this.http.post<Appointment>(`${this.backend}`, appointment);
   }
 
   getCurrentUserAppointments(user: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getCurrentUserAppointments/${user}`);
+    return this.http.get<Appointment[]>(`${this.backend}/user/${user}/current`);
   }
 
   getPastUserAppointments(user: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getPastUserAppointments/${user}`);
+    return this.http.get<Appointment[]>(`${this.backend}/user/${user}/past`);
   }
 
   cancelAppointment(id: number): Observable<Response> {
-    return this.http.delete<Response>(`${this.backend}/cancelAppointment/${id}`);
+    return this.http.delete<Response>(`${this.backend}/${id}`);
   }
 
   getFirmPendingAppointments(id: number): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getFirmPendingAppointments/${id}`);
+    return this.http.get<Appointment[]>(`${this.backend}/firm/${id}/pending`);
   }
 
   acceptAppointment(id: number, decorator: string): Observable<Appointment> {
-    return this.http.put<Appointment>(`${this.backend}/acceptAppointment/${id}`, { decorator: decorator });
+    return this.http.put<Appointment>(`${this.backend}/${id}/accept`, { decorator });
   }
 
   declineAppointment(id: number, decorator: string, rejectionComment: string): Observable<Appointment> {
-    return this.http.put<Appointment>(`${this.backend}/declineAppointment/${id}`, { decorator: decorator, rejectionComment: rejectionComment });
+    return this.http.put<Appointment>(`${this.backend}/${id}/decline`, { decorator, rejectionComment });
   }
 
   getDecoratorAcceptedAppointments(decorator: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getDecoratorAcceptedAppointments/${decorator}`);
+    return this.http.get<Appointment[]>(`${this.backend}/decorator/${decorator}/accepted`);
   }
 
   getDecoratorFinishedAppointments(decorator: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getDecoratorFinishedAppointments/${decorator}`);
+    return this.http.get<Appointment[]>(`${this.backend}/decorator/${decorator}/finished`);
   }
 
   getDecoratorAppointments(decorator: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getDecoratorAppointments/${decorator}`);
+    return this.http.get<Appointment[]>(`${this.backend}/decorator/${decorator}`);
   }
 
   getAppointmentsLast24Hours(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getAppointmentsLast24Hours`);
+    return this.http.get<number>(`${this.backend}/stats/last-24-hours`);
   }
 
   getAppointmentsLast7Days(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getAppointmentsLast7Days`);
+    return this.http.get<number>(`${this.backend}/stats/last-7-days`);
   }
 
   getAppointmentsLast30Days(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getAppointmentsLast30Days`);
+    return this.http.get<number>(`${this.backend}/stats/last-30-days`);
   }
 
   getTotalDecoratedGardens(): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getTotalDecoratedGardens`);
+    return this.http.get<number>(`${this.backend}/stats/total-decorated-gardens`);
   }
 
   getLastThreeFinishedAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getLastThreeFinishedAppointments`);
+    return this.http.get<Appointment[]>(`${this.backend}/recent-finished`);
   }
 
   getOwnerFinishedAppointments(owner: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getOwnerFinishedAppointments/${owner}`);
+    return this.http.get<Appointment[]>(`${this.backend}/owner/${owner}/finished`);
   }
 
   getBusyDecorators(firmId: number, datetime: string): Observable<string[]> {
-    return this.http.get<string[]>(`${this.backend}/getBusyDecorators/${firmId}/${datetime}`);
+    return this.http.get<string[]>(`${this.backend}/busy-decorators/${firmId}/${datetime}`);
   }
 
   finishAppointment(id: number): Observable<Appointment> {
     const now = new Date();
     const twoHoursInMs = 2 * 60 * 60 * 1000;
 
-    return this.http.put<Appointment>(`${this.backend}/finishAppointment/${id}`, { finished: (new Date(now.getTime() + twoHoursInMs)).toISOString() });
+    return this.http.put<Appointment>(`${this.backend}/${id}/finish`, {
+      finished: (new Date(now.getTime() + twoHoursInMs)).toISOString()
+    });
   }
 
   attachPhoto(id: number, photo: File): Observable<Appointment> {
     const formData = new FormData();
-
     formData.append("photo", photo);
 
-    return this.http.put<Appointment>(`${this.backend}/attachPhoto/${id}`, formData);
+    return this.http.put<Appointment>(`${this.backend}/${id}/photo`, formData);
   }
 
   getDecoratorMonthlyAppointments(decorator: string, month: string): Observable<number> {
-    return this.http.get<number>(`${this.backend}/getDecoratorMonthlyAppointments/${decorator}/${month}`);
+    return this.http.get<number>(`${this.backend}/decorator/${decorator}/monthly/${month}`);
   }
 
   getDailyAppointments(id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.backend}/getDailyAppointments/${id}`);
+    return this.http.get<any[]>(`${this.backend}/daily/${id}`);
   }
 
   requestMaintenance(id: number, status: string, maintenanceStart: string): Observable<Appointment> {
-    return this.http.put<Appointment>(`${this.backend}/requestMaintenance/${id}`, { status: status, maintenanceStart: maintenanceStart });
+    return this.http.put<Appointment>(`${this.backend}/${id}/request-maintenance`, { status, maintenanceStart });
   }
 
   getAppointmentsMaintenance(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getAppointmentsMaintenance`);
+    return this.http.get<Appointment[]>(`${this.backend}/maintenance`);
   }
 
   getDecoratorMaintenance(decorator: string): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getDecoratorMaintenance/${decorator}`);
+    return this.http.get<Appointment[]>(`${this.backend}/decorator/${decorator}/maintenance`);
   }
 
   acceptMaintenance(id: number, maintenanceStart: string, maintenanceEnd: string): Observable<Appointment> {
-    return this.http.put<Appointment>(`${this.backend}/acceptMaintenance/${id}`, { maintenanceStart: maintenanceStart, maintenanceEnd: maintenanceEnd });
+    return this.http.put<Appointment>(`${this.backend}/${id}/accept-maintenance`, { maintenanceStart, maintenanceEnd });
   }
 
   rejectMaintenance(id: number): Observable<Appointment> {
-    return this.http.put<Appointment>(`${this.backend}/rejectMaintenance/${id}`, {});
+    return this.http.put<Appointment>(`${this.backend}/${id}/reject-maintenance`, {});
   }
 
   getNotAttachedPhotoAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.backend}/getNotAttachedPhotoAppointments`);
+    return this.http.get<Appointment[]>(`${this.backend}/pending-photo`);
   }
 }

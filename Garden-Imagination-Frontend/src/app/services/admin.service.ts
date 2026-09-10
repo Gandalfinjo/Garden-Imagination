@@ -7,10 +7,9 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AdminService {
+  private readonly backend: string = "http://localhost:4000/admins";
 
   constructor(private http: HttpClient) { }
-
-  backend: string = "http://localhost:4000/admins";
 
   login(username: string, password: string): Observable<Admin> {
     return this.http.post<Admin>(`${this.backend}/login`, { username: username, password: password });
