@@ -1,39 +1,77 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+import UserSchema, { IUser } from "./user";
+import { IService, ServiceSchema } from "./service";
 
-const Schema = mongoose.Schema;
+export interface IFirm extends Document {
+    id: number;
+    name: string;
+    address: string;
+    services: IService[];
+    decorators: IUser[];
+    contact: string;
+    workingHoursStart?: string;
+    workingHoursEnd?: string;
+    holidayStart: string;
+    holidayEnd: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
 
-const Firm = new Schema(
+const EmbeddedUserSchema = UserSchema.schema.clone();
+EmbeddedUserSchema.eachPath((path, schemaType) => {
+    schemaType.options.unique = false;
+});
+
+const FirmSchema = new Schema<IFirm>(
     {
         id: {
             type: Number,
-            default: 0,
-            required: true
+            required: true,
+            unique: true,
         },
         name: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
         },
-        address: {
+            address: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
         },
-        services: Array,
-        decorators: Array,
+        services: {
+            type: [ServiceSchema],
+            default: [],
+        },
+        decorators: {
+            type: [EmbeddedUserSchema],
+            default: [],
+        },
         contact: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
         },
-        workingHoursStart: String,
-        workingHoursEnd: String,
+        workingHoursStart: {
+            type: String,
+            default: "",
+        },
+        workingHoursEnd: {
+            type: String,
+            default: "",
+        },
         holidayStart: {
             type: String,
-            required: true
+            required: true,
         },
         holidayEnd: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
+    },
+    {
+        timestamps: true,
     }
 );
 
-export default mongoose.model("Firm", Firm, "firms");
+export default mongoose.model<IFirm>("Firm", FirmSchema, "firms");

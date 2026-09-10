@@ -1,8 +1,17 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-const Schema = mongoose.Schema;
+export interface IComment extends Document {
+    id: number;
+    user: string;
+    firmId: number;
+    appointmentId: number;
+    comment: string;
+    grade: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
 
-const Comment = new Schema(
+const CommentSchema = new Schema<IComment>(
     {
         id: {
             type: Number,
@@ -11,7 +20,8 @@ const Comment = new Schema(
         },
         user: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         firmId: {
             type: Number,
@@ -21,9 +31,18 @@ const Comment = new Schema(
             type: Number,
             required: true
         },
-        comment: String,
-        grade: Number
+        comment: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        grade: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 5
+        }
     }
 );
 
-export default mongoose.model("Comment", Comment, "comments");
+export default mongoose.model<IComment>("Comment", CommentSchema, "comments");
