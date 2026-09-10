@@ -1,114 +1,53 @@
 import express from "express";
 import { AppointmentController } from "../controllers/appointment.controller";
+import { upload } from "../config/multer.config";
 
 const appointmentRouter = express.Router();
+const controller = new AppointmentController();
 
-appointmentRouter.route("/makeAppointment").post(
-    (req, res) => new AppointmentController().makeAppointment(req, res)
+// --- General Appointments Lifecycle ---
+appointmentRouter.post("/", upload.single("photo"), controller.makeAppointment);
+appointmentRouter.delete("/:id", controller.cancelAppointment);
+appointmentRouter.patch("/:id/accept", controller.acceptAppointment);
+appointmentRouter.patch("/:id/decline", controller.declineAppointment);
+appointmentRouter.patch("/:id/finish", controller.finishAppointment);
+appointmentRouter.patch(
+    "/:id/photo",
+    upload.single("photo"),
+    controller.attachPhoto
 );
 
-appointmentRouter.route("/getCurrentUserAppointments/:user").get(
-    (req, res) => new AppointmentController().getCurrentUserAppointments(req, res)
-);
+// --- User-Specific Appointments ---
+appointmentRouter.get("/user/:user/current", controller.getCurrentUserAppointments);
+appointmentRouter.get("/user/:user/past", controller.getPastUserAppointments);
+appointmentRouter.get("/owner/:owner/finished", controller.getOwnerFinishedAppointments);
 
-appointmentRouter.route("/getPastUserAppointments/:user").get(
-    (req, res) => new AppointmentController().getPastUserAppointments(req, res)
-);
+// --- Firm-Specific Appointments ---
+appointmentRouter.get("/firm/:firmId/pending", controller.getFirmPendingAppointments);
+appointmentRouter.get("/firm/:firmId/busy-decorators", controller.getBusyDecorators);
+appointmentRouter.get("/firm/:firmId/daily", controller.getDailyAppointments);
 
-appointmentRouter.route("/cancelAppointment/:id").delete(
-    (req, res) => new AppointmentController().cancelAppointment(req, res)
-);
+// --- Decorator-Specific Appointments ---
+appointmentRouter.get("/decorator/:decorator", controller.getDecoratorAppointments);
+appointmentRouter.get("/decorator/:decorator/accepted", controller.getDecoratorAcceptedAppointments);
+appointmentRouter.get("/decorator/:decorator/finished", controller.getDecoratorFinishedAppointments);
+appointmentRouter.get("/decorator/:decorator/monthly", controller.getDecoratorMonthlyAppointments);
+appointmentRouter.get("/decorator/:decorator/maintenance", controller.getDecoratorMaintenance);
 
-appointmentRouter.route("/getFirmPendingAppointments/:firmId").get(
-    (req, res) => new AppointmentController().getFirmPendingAppointments(req, res)
-);
+// --- Analytics & Statistics ---
+appointmentRouter.get("/stats/last-24-hours", controller.getAppointmentsLast24Hours);
+appointmentRouter.get("/stats/last-7-days", controller.getAppointmentsLast7Days);
+appointmentRouter.get("/stats/last-30-days", controller.getAppointmentsLast30Days);
+appointmentRouter.get("/stats/total-decorated-gardens", controller.getTotalDecoratedGardens);
+appointmentRouter.get("/stats/recent-finished", controller.getLastThreeFinishedAppointments);
 
-appointmentRouter.route("/acceptAppointment/:id").put(
-    (req, res) => new AppointmentController().acceptAppointment(req, res)
-);
+// --- Maintenance Workflow ---
+appointmentRouter.get("/maintenance", controller.getAppointmentsMaintenance);
+appointmentRouter.patch("/:id/maintenance/request", controller.requestMaintenance);
+appointmentRouter.patch("/:id/maintenance/accept", controller.acceptMaintenance);
+appointmentRouter.patch("/:id/maintenance/reject", controller.rejectMaintenance);
 
-appointmentRouter.route("/declineAppointment/:id").put(
-    (req, res) => new AppointmentController().declineAppointment(req, res)
-);
-
-appointmentRouter.route("/getDecoratorAcceptedAppointments/:decorator").get(
-    (req, res) => new AppointmentController().getDecoratorAcceptedAppointments(req, res)
-);
-
-appointmentRouter.route("/getDecoratorFinishedAppointments/:decorator").get(
-    (req, res) => new AppointmentController().getDecoratorFinishedAppointments(req, res)
-);
-
-appointmentRouter.route("/getDecoratorAppointments/:decorator").get(
-    (req, res) => new AppointmentController().getDecoratorAppointments(req, res)
-);
-
-appointmentRouter.route("/getAppointmentsLast24Hours").get(
-    (req, res) => new AppointmentController().getAppointmentsLast24Hours(req, res)
-);
-
-appointmentRouter.route("/getAppointmentsLast7Days").get(
-    (req, res) => new AppointmentController().getAppointmentsLast7Days(req, res)
-);
-
-appointmentRouter.route("/getAppointmentsLast30Days").get(
-    (req, res) => new AppointmentController().getAppointmentsLast30Days(req, res)
-);
-
-appointmentRouter.route("/getTotalDecoratedGardens").get(
-    (req, res) => new AppointmentController().getTotalDecoratedGardens(req, res)
-);
-
-appointmentRouter.route("/getLastThreeFinishedAppointments").get(
-    (req, res) => new AppointmentController().getLastThreeFinishedAppointments(req, res)
-);
-
-appointmentRouter.route("/getOwnerFinishedAppointments/:owner").get(
-    (req, res) => new AppointmentController().getOwnerFinishedAppointments(req, res)
-);
-
-appointmentRouter.route("/getBusyDecorators/:firmId/:datetime").get(
-    (req, res) => new AppointmentController().getBusyDecorators(req, res)
-);
-
-appointmentRouter.route("/finishAppointment/:id").put(
-    (req, res) => new AppointmentController().finishAppointment(req, res)
-);
-
-appointmentRouter.route("/attachPhoto/:id").put(
-    (req, res) => new AppointmentController().attachPhoto(req, res)
-);
-
-appointmentRouter.route("/getDecoratorMonthlyAppointments/:decorator/:month").get(
-    (req, res) => new AppointmentController().getDecoratorMonthlyAppointments(req, res)
-);
-
-appointmentRouter.route("/getDailyAppointments/:firmId").get(
-    (req, res) => new AppointmentController().getDailyAppointments(req, res)
-);
-
-appointmentRouter.route("/requestMaintenance/:id").put(
-    (req, res) => new AppointmentController().requestMaintenance(req, res)
-);
-
-appointmentRouter.route("/getAppointmentsMaintenance").get(
-    (req, res) => new AppointmentController().getAppointmentsMaintenance(req, res)
-);
-
-appointmentRouter.route("/getDecoratorMaintenance/:decorator").get(
-    (req, res) => new AppointmentController().getDecoratorMaintenance(req, res)
-);
-
-appointmentRouter.route("/acceptMaintenance/:id").put(
-    (req, res) => new AppointmentController().acceptMaintenance(req, res)
-);
-
-appointmentRouter.route("/rejectMaintenance/:id").put(
-    (req, res) => new AppointmentController().rejectMaintenance(req, res)
-);
-
-appointmentRouter.route("/getNotAttachedPhotoAppointments").get(
-    (req, res) => new AppointmentController().getNotAttachedPhotoAppointments(req, res)
-);
+// --- Media Audit Queries ---
+appointmentRouter.get("/unattached-photos", controller.getNotAttachedPhotoAppointments);
 
 export default appointmentRouter;

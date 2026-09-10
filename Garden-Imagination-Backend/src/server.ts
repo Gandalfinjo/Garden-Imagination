@@ -33,6 +33,7 @@ app.use("/", apiRouter);
 // Global Error Handling Middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error(`[Error] ${err.stack || err.message}`);
+    
     res.status(500).json({
         success: false,
         error: err.message || "Internal Server Error!"
@@ -47,8 +48,7 @@ async function startServer() {
         app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`);
         });
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Failed to connect to the database:", error);
         process.exit(1);
     }

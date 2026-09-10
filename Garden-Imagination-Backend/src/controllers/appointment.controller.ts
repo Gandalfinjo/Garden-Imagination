@@ -1,325 +1,428 @@
-import express from "express";
+import { Request, Response, NextFunction } from "express";
 import Appointment from "../models/appointment";
 
 export class AppointmentController {
-    makeAppointment = (req: express.Request, res: express.Response) => {
-        Appointment.findOne().sort({ id: -1 }).then(maxIdApp => {
+    // --- General Appointments Lifecycle ---
+    makeAppointment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const maxIdApp = await Appointment.findOne().sort({ id: -1 });
             const newId = maxIdApp ? maxIdApp.id + 1 : 1;
 
             const { id, ...appointmentData } = req.body;
+            const photo = req.file?.filename || "";
 
             const newAppointment = new Appointment({
                 id: newId,
-                ...appointmentData
+                photo,
+                ...appointmentData,
             });
 
-            newAppointment.save().then(savedAppointment => {
-                res.status(201).json(savedAppointment);
-            });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getCurrentUserAppointments = (req: express.Request, res: express.Response) => {
-        const now = new Date().toISOString();
-
-        Appointment.find({ user: req.params.user, datetime: { $gte: now }}).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getPastUserAppointments = (req: express.Request, res: express.Response) => {
-        const now = new Date().toISOString();
-
-        Appointment.find({ user: req.params.user, datetime: { $lt: now }}).sort({ datetime: -1 }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    cancelAppointment = (req: express.Request, res: express.Response) => {
-        const appointmentId = req.params.id;
-
-        if (!appointmentId) {
-            return res.status(400).json({ message: "Appointment ID is required." });
+            const savedAppointment = await newAppointment.save();
+            return res.status(201).json(savedAppointment);
+        } catch (error) {
+            next(error);
         }
+    };
 
-        Appointment.deleteOne({ id: appointmentId }).then(result => {
+    cancelAppointment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointmentId = req.params.id;
+
+            if (!appointmentId) {
+                return res.status(400).json({ message: "Appointment ID is required." });
+            }
+
+            const result = await Appointment.deleteOne({ id: appointmentId });
+
             if (result.deletedCount === 0) {
                 return res.status(404).json({ message: "Appointment not found." });
             }
 
-            res.status(200).json({ message: "Successfully cancelled the appointment." });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            return res.status(200).json({ message: "Successfully cancelled the appointment." });
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getFirmPendingAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ firmId: req.params.firmId, status: "pending" }).sort({ datetime: 1 }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    acceptAppointment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const updatedAppointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                { decorator: req.body.decorator, status: "accepted" },
+                { new: true }
+            );
+            return res.status(200).json(updatedAppointment);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    acceptAppointment = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { decorator: req.body.decorator, status: "accepted" }).then(updatedAppointment => {
-            res.status(200).json(updatedAppointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    declineAppointment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const updatedAppointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                {
+                decorator: req.body.decorator,
+                status: "declined",
+                rejectionComment: req.body.rejectionComment,
+                },
+                { new: true }
+            );
+            return res.status(200).json(updatedAppointment);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    declineAppointment = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { decorator: req.body.decorator, status: "declined", rejectionComment: req.body.rejectionComment }).then(updatedAppointment => {
-            res.status(200).json(updatedAppointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    finishAppointment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                { status: "finished", finishedDateTime: req.body.finished },
+                { new: true }
+            );
+            return res.status(200).json(appointment);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getDecoratorAcceptedAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ decorator: req.params.decorator, status: "accepted" }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    attachPhoto = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                { photo: req.file?.filename },
+                { new: true }
+            );
+            return res.status(200).json(appointment);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getDecoratorFinishedAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ decorator: req.params.decorator, status: "finished" }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    // --- User-Specific Appointments ---
+    getCurrentUserAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const now = new Date().toISOString();
+            const appointments = await Appointment.find({
+                user: req.params.user,
+                datetime: { $gte: now },
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getDecoratorAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ decorator: req.params.decorator }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    getPastUserAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const now = new Date().toISOString();
+            const appointments = await Appointment.find({
+                user: req.params.user,
+                datetime: { $lt: now },
+            }).sort({ datetime: -1 });
 
-    getAppointmentsLast24Hours = (req: express.Request, res: express.Response) => {
-        const date = new Date();
-        date.setDate(date.getDate() - 1);
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-        Appointment.countDocuments({ createdAt: { $gte: date } }).then(count => {
-            res.status(200).json(count);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    getOwnerFinishedAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                user: req.params.owner,
+                status: "finished",
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getAppointmentsLast7Days = (req: express.Request, res: express.Response) => {
-        const date = new Date();
-        date.setDate(date.getDate() - 7);
+    // --- Firm-Specific Appointments ---
+    getFirmPendingAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                firmId: req.params.firmId,
+                status: "pending",
+            }).sort({ datetime: 1 });
 
-        Appointment.countDocuments({ createdAt: { $gte: date } }).then(count => {
-            res.status(200).json(count);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getAppointmentsLast30Days = (req: express.Request, res: express.Response) => {
-        const date = new Date();
-        date.setDate(date.getDate() - 30);
+    getBusyDecorators = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const rawDateTime = (req.query.datetime as string) || (req.params.datetime as string);
+            const datetime = new Date(rawDateTime);
+            const twoHoursInMs = 2 * 60 * 60 * 1000;
 
-        Appointment.countDocuments({ createdAt: { $gte: date } }).then(count => {
-            res.status(200).json(count);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            const start = new Date(datetime.getTime());
+            const end = new Date(datetime.getTime() + 2 * twoHoursInMs);
 
-    getTotalDecoratedGardens = (req: express.Request, res: express.Response) => {
-        Appointment.countDocuments({
-            $or: [
-                { status: "finished" },
-                { status: "Pending maintenance" },
-                { status: "Under maintenance" }
-            ]
-        }).then(count => {
-            res.status(200).json(count);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getLastThreeFinishedAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ photo: { $ne: ""}, finishedDateTime : { $ne: "" } }).sort({ finishedDateTime: -1 }).limit(3).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getOwnerFinishedAppointments = (req: express.Request, res: express.Response) => {
-        Appointment.find({ user: req.params.owner, status: "finished" }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getBusyDecorators = (req: express.Request, res: express.Response) => {
-        const datetime = new Date(req.params.datetime);
-        const twoHoursInMs = 2 * 60 * 60 * 1000;
-
-        const start = new Date(datetime.getTime());
-        const end = new Date(datetime.getTime() + 2 * twoHoursInMs);
-
-        Appointment.find({
-            firmId: req.params.firmId,
-            $or: [
+            const appointments = await Appointment.find({
+                firmId: req.params.firmId,
+                $or: [
                 { datetime: { $gte: start.toISOString(), $lte: end.toISOString() } },
-                { $and: [
+                {
+                    $and: [
                     { maintenanceStart: { $lte: start.toISOString() } },
-                    { maintenanceEnd: { $gte: start.toISOString() } }
-                ]}
-            ]
-            
-        }).then(appointments => {
-            const decorators = [...new Set(appointments.map(app => app.decorator).filter(decorator => decorator))];
-            res.status(200).json(decorators);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    finishAppointment = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { status: "finished", finishedDateTime: req.body.finished }).then(appointment => {
-            res.status(200).json(appointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    attachPhoto = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { photo: req.file?.filename }).then(appointment => {
-            res.status(200).json(appointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getDecoratorMonthlyAppointments = (req: express.Request, res: express.Response) => {
-        const month = req.params.month;
-
-        Appointment.find({ decorator: req.params.decorator }).then(appointments => {
-            let apps: any[] = [];
-
-            appointments.forEach(appointment => {
-                let m = appointment.datetime.split("-")[1];
-                if (m == month) apps.push(appointment);
+                    { maintenanceEnd: { $gte: start.toISOString() } },
+                    ],
+                },
+                ],
             });
 
-            res.status(200).json(apps.length);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            const decorators = [
+                ...new Set(
+                appointments
+                    .map((app) => app.decorator)
+                    .filter((decorator): decorator is string => Boolean(decorator))
+                ),
+            ];
 
-    getDailyAppointments = async (req: express.Request, res: express.Response) => {
+            return res.status(200).json(decorators);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getDailyAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         try {
             const now = new Date();
             const startDate = new Date(now.setMonth(now.getMonth() - 24));
             const firmId = Number(req.params.firmId);
-    
+
             const appointments = await Appointment.find({
                 datetime: { $gte: startDate.toISOString() },
-                firmId: firmId
+                firmId: firmId,
             }).exec();
-    
+
             const dayOfWeekCounts = new Array(7).fill(0);
-    
-            appointments.forEach(appointment => {
+
+            appointments.forEach((appointment) => {
                 const dayOfWeek = new Date(appointment.datetime).getDay();
                 dayOfWeekCounts[dayOfWeek]++;
             });
-    
+
             const totalDays = 24 * 30;
             const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            
+
             const histogramData = dayOfWeekCounts.map((count, index) => ({
                 day: dayNames[index],
-                avgJobs: count / totalDays
+                avgJobs: count / totalDays,
             }));
-    
-            res.status(200).json(histogramData);
-    
+
+            return res.status(200).json(histogramData);
         } catch (error) {
-            res.status(500).json("Internal server error");
+            next(error);
         }
-    }
+    };
 
-    requestMaintenance = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { status: req.body.status, maintenanceStart: req.body.maintenanceStart }).then(appointment => {
-            res.status(200).json(appointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    // --- Decorator-Specific Appointments ---
+    getDecoratorAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({ decorator: req.params.decorator });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getAppointmentsMaintenance = (req: express.Request, res: express.Response) => {
-        Appointment.find({
-            $or: [
+    getDecoratorAcceptedAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                decorator: req.params.decorator,
+                status: "accepted",
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getDecoratorFinishedAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                decorator: req.params.decorator,
+                status: "finished",
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getDecoratorMonthlyAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const month = req.params.month || (req.query.month as string);
+            const appointments = await Appointment.find({ decorator: req.params.decorator });
+
+            const filteredApps = appointments.filter((appointment) => {
+                const m = appointment.datetime.split("-")[1];
+                return m === month;
+            });
+
+            return res.status(200).json(filteredApps.length);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getDecoratorMaintenance = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                status: "Pending maintenance",
+                decorator: req.params.decorator,
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- Analytics & Statistics ---
+    getAppointmentsLast24Hours = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const date = new Date();
+            date.setDate(date.getDate() - 1);
+
+            const count = await Appointment.countDocuments({ createdAt: { $gte: date } });
+            return res.status(200).json(count);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAppointmentsLast7Days = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const date = new Date();
+            date.setDate(date.getDate() - 7);
+
+            const count = await Appointment.countDocuments({ createdAt: { $gte: date } });
+            return res.status(200).json(count);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAppointmentsLast30Days = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const date = new Date();
+            date.setDate(date.getDate() - 30);
+
+            const count = await Appointment.countDocuments({ createdAt: { $gte: date } });
+            return res.status(200).json(count);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getTotalDecoratedGardens = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const count = await Appointment.countDocuments({
+                $or: [
+                { status: "finished" },
+                { status: "Pending maintenance" },
                 { status: "Under maintenance" },
-                { status: "Pending maintenance" }
-            ]
-        }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+                ],
+            });
+            return res.status(200).json(count);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getDecoratorMaintenance = (req: express.Request, res: express.Response) => {
-        Appointment.find({ status: "Pending maintenance", decorator: req.params.decorator }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    getLastThreeFinishedAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                photo: { $ne: "" },
+                finishedDateTime: { $ne: "" },
+            })
+                .sort({ finishedDateTime: -1 })
+                .limit(3);
 
-    acceptMaintenance = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { status: "Under maintenance", maintenanceStart: req.body.maintenanceStart, maintenanceEnd: req.body.maintenanceEnd }).then(appointment => {
-            res.status(200).json(appointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    rejectMaintenance = (req: express.Request, res: express.Response) => {
-        Appointment.findOneAndUpdate({ id: req.params.id }, { status: "finished", maintenanceStart: "" }).then(appointment => {
-            res.status(200).json(appointment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    // --- Maintenance Workflow ---
+    getAppointmentsMaintenance = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointments = await Appointment.find({
+                $or: [{ status: "Under maintenance" }, { status: "Pending maintenance" }],
+            });
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-    getNotAttachedPhotoAppointments = (req: express.Request, res: express.Response) => {
-        const now = new Date();
-        const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        dayAgo.setHours(dayAgo.getHours() + 2);
-        const dayAgoISO = dayAgo.toISOString();
+    requestMaintenance = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                { status: req.body.status, maintenanceStart: req.body.maintenanceStart },
+                { new: true }
+            );
+            return res.status(200).json(appointment);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-        Appointment.find({
-            status: { $in: ["finished", "Under maintenance", "Pending maintenance"] },
-            finishedDateTime: { $lte: dayAgoISO },
-            photo: ""
-        }).then(appointments => {
-            res.status(200).json(appointments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+    acceptMaintenance = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                {
+                status: "Under maintenance",
+                maintenanceStart: req.body.maintenanceStart,
+                maintenanceEnd: req.body.maintenanceEnd,
+                },
+                { new: true }
+            );
+            return res.status(200).json(appointment);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    rejectMaintenance = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const appointment = await Appointment.findOneAndUpdate(
+                { id: req.params.id },
+                { status: "finished", maintenanceStart: "" },
+                { new: true }
+            );
+            return res.status(200).json(appointment);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- Media Audit Queries ---
+    getNotAttachedPhotoAppointments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const now = new Date();
+            const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            dayAgo.setHours(dayAgo.getHours() + 2);
+            const dayAgoISO = dayAgo.toISOString();
+
+            const appointments = await Appointment.find({
+                status: { $in: ["finished", "Under maintenance", "Pending maintenance"] },
+                finishedDateTime: { $lte: dayAgoISO },
+                photo: "",
+            });
+
+            return res.status(200).json(appointments);
+        } catch (error) {
+            next(error);
+        }
+    };
 }
