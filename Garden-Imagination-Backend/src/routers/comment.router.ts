@@ -2,21 +2,14 @@ import express from "express";
 import { CommentController } from "../controllers/comment.controller";
 
 const commentRouter = express.Router();
+const controller = new CommentController();
 
-commentRouter.route("/getAverageGrade/:firmId").get(
-    (req, res) => new CommentController().getAverageGrade(req, res)
-);
+// --- Comment Lifecycle ---
+commentRouter.post("/", controller.leaveComment);
+commentRouter.get("/appointment/:id", controller.getAppointmentComment);
 
-commentRouter.route("/getFirmComments/:firmId").get(
-    (req, res) => new CommentController().getFirmComments(req, res)
-);
-
-commentRouter.route("/getAppointmentComment/:id").get(
-    (req, res) => new CommentController().getAppointmentComment(req, res)
-);
-
-commentRouter.route("/leaveComment").post(
-    (req, res) => new CommentController().leaveComment(req, res)
-);
+// --- Firm Feedback & Ratings ---
+commentRouter.get("/firm/:firmId", controller.getFirmComments);
+commentRouter.get("/firm/:firmId/average-grade", controller.getAverageGrade);
 
 export default commentRouter;

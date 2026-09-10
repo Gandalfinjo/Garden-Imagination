@@ -1,44 +1,11 @@
-import express from "express";
+import { Request, Response, NextFunction } from "express";
 import Comment from "../models/comment";
 
 export class CommentController {
-    getAverageGrade = (req: express.Request, res: express.Response) => {
-        Comment.find({ firmId: req.params.firmId }).then(comments => {
-            let total: number = 0.0;
-            let avg: number = 0.0;
-
-            if (comments.length != 0) {
-                for (let i = 0; i < comments.length; i++) {
-                    total += comments[i].grade!;
-                }
-
-                avg = total / comments.length;
-            }
-
-            res.status(200).json(avg);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getFirmComments = (req: express.Request, res: express.Response) => {
-        Comment.find({ firmId: req.params.firmId }).then(comments => {
-            res.status(201).json(comments);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    getAppointmentComment = (req: express.Request, res: express.Response) => {
-        Comment.findOne({ appointmentId: req.params.id }).then(comment => {
-            res.status(201).json(comment);
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
-
-    leaveComment = (req:express.Request, res: express.Response) => {
-        Comment.findOne().sort({ id: -1 }).then(maxIdComment => {
+    // --- Comment Lifecycle ---
+    leaveComment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const maxIdComment = await Comment.findOne().sort({ id: -1 });
             const newId = maxIdComment ? maxIdComment.id + 1 : 1;
 
             const newComment = new Comment({
@@ -47,14 +14,49 @@ export class CommentController {
                 firmId: req.body.firmId,
                 appointmentId: req.body.appointmentId,
                 comment: req.body.comment,
-                grade: req.body.grade
+                grade: req.body.grade,
             });
 
-            newComment.save().then(savedComment => {
-                res.status(200).json(savedComment);
-            });
-        }).catch(error => {
-            res.status(500).json({ message: error.message });
-        });
-    }
+            const savedComment = await newComment.save();
+            return res.status(201).json(savedComment);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAppointmentComment = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const comment = await Comment.findOne({ appointmentId: req.params.id });
+            return res.status(200).json(comment);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    // --- Firm Feedback & Ratings ---
+    getFirmComments = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const comments = await Comment.find({ firmId: req.params.firmId });
+            return res.status(200).json(comments);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAverageGrade = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const comments = await Comment.find({ firmId: req.params.firmId });
+
+            if (comments.length === 0) {
+                return res.status(200).json(0);
+            }
+
+            const total = comments.reduce((acc, curr) => acc + (curr.grade || 0), 0);
+            const avg = total / comments.length;
+
+            return res.status(200).json(avg);
+        } catch (error) {
+            next(error);
+        }
+    };
 }
